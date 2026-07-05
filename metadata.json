@@ -1,0 +1,6 @@
+{
+  "name": "Smart Network Platform",
+  "description": "منصة ويب ذكية لإدارة ومراقبة وتحليل شبكات الإنترنت مع دمج LibreNMS وتحليل البيانات باستخدام Python ورسوم بيانية تفاعلية.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
