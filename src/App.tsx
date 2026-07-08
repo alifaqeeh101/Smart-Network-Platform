@@ -30,7 +30,12 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Menu,
-  X
+  X,
+  LogIn,
+  LogOut,
+  UserPlus,
+  Shield,
+  Lock
 } from 'lucide-react';
 import { ThesisHub } from './components/ThesisHub';
 
@@ -238,8 +243,49 @@ export default function App() {
   const [activePlatformPage, setActivePlatformPage] = useState<string>('dashboard');
   const [isDarkMode, setIsDarkMode] = useState<boolean>(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
+  
+  // حالات تسجيل الدخول والمستخدمين المضافة
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(true);
+  const [currentUser, setCurrentUser] = useState<any>({
+    id: 1,
+    username: 'alifaqeeh',
+    email: 'alifaqeeh101@gmail.com',
+    role: 'Administrator',
+    fullName: 'علي الفقيه',
+    status: 'Active'
+  });
+  
   const [engineerName, setEngineerName] = useState<string>('علي الفقيه');
   const [engineerRole, setEngineerRole] = useState<string>('مدير النظام والشبكة');
+
+  // قائمة المستخدمين الافتراضية المحاكية لقاعدة البيانات (تطابق جداول schema.sql)
+  const [usersList, setUsersList] = useState([
+    { id: 1, username: 'alifaqeeh', password: '123', email: 'alifaqeeh101@gmail.com', role: 'Administrator', fullName: 'علي الفقيه', status: 'Active', createdAt: '2026-07-01 10:00' },
+    { id: 2, username: 'ahmed_net', password: '123', email: 'ahmed@uniyemen.edu.ye', role: 'Network Administrator', fullName: 'أحمد صالح', status: 'Active', createdAt: '2026-07-02 11:30' },
+    { id: 3, username: 'operator1', password: '123', email: 'op1@uniyemen.edu.ye', role: 'Operator', fullName: 'خالد محمد', status: 'Active', createdAt: '2026-07-03 09:15' },
+    { id: 4, username: 'viewer_guest', password: '123', email: 'viewer@uniyemen.edu.ye', role: 'Viewer', fullName: 'أروى العبيدي', status: 'Active', createdAt: '2026-07-04 14:00' }
+  ]);
+
+  // حقول نموذج إضافة مستخدم جديد
+  const [newUserFullName, setNewUserFullName] = useState('');
+  const [newUserUsername, setNewUserUsername] = useState('');
+  const [newUserEmail, setNewUserEmail] = useState('');
+  const [newUserPassword, setNewUserPassword] = useState('');
+  const [newUserRole, setNewUserRole] = useState('Operator');
+
+  // حقول نموذج تسجيل الدخول والمحاكاة
+  const [loginUsername, setLoginUsername] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+  const [loginError, setLoginError] = useState('');
+  const [isRegisterMode, setIsRegisterMode] = useState(false);
+
+  // تحديث الاسم والمنصب تلقائياً عند تغيير المستخدم الحالي
+  useEffect(() => {
+    if (currentUser) {
+      setEngineerName(currentUser.fullName);
+      setEngineerRole(currentUser.role === 'Administrator' ? 'مدير النظام (Admin)' : currentUser.role === 'Network Administrator' ? 'مهندس الشبكة (Net Admin)' : currentUser.role === 'Operator' ? 'مشغل الشبكة (Operator)' : 'مراقب عام (Viewer)');
+    }
+  }, [currentUser]);
   
   // شجرة الملفات لمتصفح الأكواد
   const [selectedFile, setSelectedFile] = useState<typeof sourceFiles[0]>(sourceFiles[0]);
@@ -326,6 +372,10 @@ export default function App() {
   // محاكاة إضافة جهاز
   const handleAddDevice = (e: React.FormEvent) => {
     e.preventDefault();
+    if (currentUser.role !== 'Administrator' && currentUser.role !== 'Network Administrator') {
+      alert(`عذراً، صلاحياتك الحالية (${currentUser.role}) لا تسمح بإجراء هذه العملية. هذه الميزة تتطلب صلاحية Administrator أو Network Administrator.`);
+      return;
+    }
     if (!newDeviceName || !newDeviceIp) {
       alert('الرجاء إدخال اسم الجهاز وعنوان IP');
       return;
@@ -366,6 +416,10 @@ export default function App() {
 
   // حذف جهاز
   const handleDeleteDevice = (id: number) => {
+    if (currentUser.role !== 'Administrator' && currentUser.role !== 'Network Administrator') {
+      alert(`عذراً، صلاحياتك الحالية (${currentUser.role}) لا تسمح بحذف الأجهزة. هذه العملية تتطلب صلاحية Administrator أو Network Administrator.`);
+      return;
+    }
     const dev = devices.find(d => d.id === id);
     if (confirm(`هل أنت متأكد من حذف الجهاز: ${dev?.name}؟`)) {
       setDevices(devices.filter(d => d.id !== id));
@@ -376,6 +430,269 @@ export default function App() {
   const toggleTheme = () => {
     setIsDarkMode(!isDarkMode);
   };
+
+  if (!isLoggedIn) {
+    return (
+      <div className="min-h-screen bg-[#0A0B10] text-gray-200 flex items-center justify-center font-sans p-4" dir="rtl">
+        <div className="w-full max-w-md p-8 rounded-2xl bg-[#111218] border border-white/10 shadow-2xl shadow-black relative overflow-hidden">
+          {/* خلفيات تجميلية للعمق */}
+          <div className="absolute top-0 left-0 w-32 h-32 bg-cyan-500/10 rounded-full blur-3xl -translate-x-10 -translate-y-10"></div>
+          <div className="absolute bottom-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl translate-x-10 translate-y-10"></div>
+
+          <div className="relative z-10 flex flex-col gap-6">
+            <div className="flex flex-col items-center text-center gap-3">
+              <div className="p-3 bg-gradient-to-tr from-cyan-500 to-blue-600 rounded-2xl text-white shadow-xl shadow-cyan-500/20">
+                <Shield className="w-8 h-8 animate-pulse" />
+              </div>
+              <div>
+                <h1 className="text-lg font-bold tracking-tight bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">
+                  منصة المراقبة والتحليل الذكي للشبكات
+                </h1>
+                <p className="text-xs text-gray-400 mt-1">
+                  بوابة الدخول الآمنة وإدارة الصلاحيات | لوحة تحكم الخريج
+                </p>
+              </div>
+            </div>
+
+            {isRegisterMode ? (
+              /* واجهة التسجيل المباشر */
+              <form onSubmit={(e) => {
+                e.preventDefault();
+                if (!newUserFullName || !newUserUsername || !newUserEmail || !newUserPassword) {
+                  setLoginError('الرجاء ملء كافة الحقول لإنشاء الحساب');
+                  return;
+                }
+                if (usersList.some(u => u.username.toLowerCase() === newUserUsername.toLowerCase())) {
+                  setLoginError('اسم المستخدم هذا محجوز مسبقاً!');
+                  return;
+                }
+
+                const newUser = {
+                  id: usersList.length + 1,
+                  fullName: newUserFullName,
+                  username: newUserUsername,
+                  email: newUserEmail,
+                  password: newUserPassword,
+                  role: newUserRole,
+                  status: 'Active',
+                  createdAt: new Date().toISOString().slice(0, 16).replace('T', ' ')
+                };
+
+                setUsersList([...usersList, newUser]);
+                setCurrentUser(newUser);
+                setIsLoggedIn(true);
+                setIsRegisterMode(false);
+                setLoginError('');
+                
+                // تصفير الحقول
+                setNewUserFullName('');
+                setNewUserUsername('');
+                setNewUserEmail('');
+                setNewUserPassword('');
+                alert(`أهلاً بك مهندس ${newUserFullName}! تم إنشاء حسابك وصلاحياتك بصفتك (${newUserRole}) ودخولك بنجاح.`);
+              }} className="flex flex-col gap-4">
+                
+                <h3 className="text-sm font-bold text-white mb-1 border-b border-white/5 pb-2 text-right">إنشاء حساب مستخدم جديد (قالب تسجيل)</h3>
+
+                {loginError && (
+                  <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs text-right">
+                    ⚠️ {loginError}
+                  </div>
+                )}
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-gray-400 text-right">الاسم الكامل للموظف/المهندس</label>
+                  <input 
+                    type="text"
+                    placeholder="مثال: علي عبدالله"
+                    value={newUserFullName}
+                    onChange={e => setNewUserFullName(e.target.value)}
+                    className="p-3 bg-[#0A0B10] border border-white/10 focus:border-cyan-500 outline-none text-white rounded-lg text-sm transition-all text-right"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-gray-400 text-right">اسم المستخدم</label>
+                  <input 
+                    type="text"
+                    placeholder="مثال: ali_net"
+                    value={newUserUsername}
+                    onChange={e => setNewUserUsername(e.target.value)}
+                    className="p-3 bg-[#0A0B10] border border-white/10 focus:border-cyan-500 outline-none text-white rounded-lg text-sm text-left transition-all"
+                    dir="ltr"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-gray-400 text-right">البريد الإلكتروني</label>
+                  <input 
+                    type="email"
+                    placeholder="example@uniyemen.edu.ye"
+                    value={newUserEmail}
+                    onChange={e => setNewUserEmail(e.target.value)}
+                    className="p-3 bg-[#0A0B10] border border-white/10 focus:border-cyan-500 outline-none text-white rounded-lg text-sm text-left transition-all"
+                    dir="ltr"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-gray-400 text-right">كلمة المرور</label>
+                  <input 
+                    type="password"
+                    placeholder="••••••••"
+                    value={newUserPassword}
+                    onChange={e => setNewUserPassword(e.target.value)}
+                    className="p-3 bg-[#0A0B10] border border-white/10 focus:border-cyan-500 outline-none text-white rounded-lg text-sm text-left transition-all"
+                    dir="ltr"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-gray-400 text-right">صلاحيات الدور الوظيفي (Role)</label>
+                  <select 
+                    value={newUserRole}
+                    onChange={e => setNewUserRole(e.target.value)}
+                    className="p-3 bg-[#0A0B10] border border-white/10 focus:border-cyan-500 outline-none text-white rounded-lg text-sm transition-all text-right"
+                  >
+                    <option value="Administrator">Administrator (مدير كامل الصلاحيات)</option>
+                    <option value="Network Administrator">Network Administrator (مهندس ومحلل شبكة)</option>
+                    <option value="Operator">Operator (مشغل نظام ومعالجة تنبيهات)</option>
+                    <option value="Viewer">Viewer (مراقب عام للقراءات فقط)</option>
+                  </select>
+                </div>
+
+                <button 
+                  type="submit"
+                  className="w-full mt-2 py-3 bg-cyan-500 hover:bg-cyan-600 text-slate-950 font-bold text-sm rounded-lg transition-all shadow-lg shadow-cyan-500/20"
+                >
+                  تسجيل الحساب والدخول للمحاكي
+                </button>
+
+                <div className="text-center text-xs text-gray-400 mt-2">
+                  <span>تمتلك حساب مسبق؟ </span>
+                  <button 
+                    type="button"
+                    onClick={() => {
+                      setIsRegisterMode(false);
+                      setLoginError('');
+                    }}
+                    className="text-cyan-400 hover:underline font-bold"
+                  >
+                    تسجيل الدخول من هنا
+                  </button>
+                </div>
+
+              </form>
+            ) : (
+              /* واجهة تسجيل الدخول */
+              <form onSubmit={(e) => {
+                e.preventDefault();
+                if (!loginUsername || !loginPassword) {
+                  setLoginError('الرجاء إدخال اسم المستخدم وكلمة المرور');
+                  return;
+                }
+
+                // البحث عن المستخدم ببياناته
+                const foundUser = usersList.find(u => 
+                  (u.username.toLowerCase() === loginUsername.toLowerCase() || u.email.toLowerCase() === loginUsername.toLowerCase()) && 
+                  u.password === loginPassword
+                );
+
+                if (!foundUser) {
+                  setLoginError('اسم المستخدم أو كلمة المرور غير صحيحة!');
+                  return;
+                }
+
+                setCurrentUser(foundUser);
+                setIsLoggedIn(true);
+                setLoginError('');
+                setLoginUsername('');
+                setLoginPassword('');
+                alert(`مرحباً بعودتك مهندس ${foundUser.fullName}! تم تسجيل دخولك بنجاح بصفتك (${foundUser.role}).`);
+              }} className="flex flex-col gap-4">
+                
+                <h3 className="text-sm font-bold text-white mb-1 border-b border-white/5 pb-2 text-right">تسجيل الدخول للنظام</h3>
+
+                {loginError && (
+                  <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs text-right">
+                    ⚠️ {loginError}
+                  </div>
+                )}
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-gray-400 text-right">اسم المستخدم أو البريد الإلكتروني</label>
+                  <input 
+                    type="text"
+                    placeholder="alifaqeeh أو البريد الإلكتروني"
+                    value={loginUsername}
+                    onChange={e => setLoginUsername(e.target.value)}
+                    className="p-3 bg-[#0A0B10] border border-white/10 focus:border-cyan-500 outline-none text-white rounded-lg text-sm text-left transition-all"
+                    dir="ltr"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-gray-400 text-right">كلمة المرور</label>
+                  <input 
+                    type="password"
+                    placeholder="أدخل كلمة المرور (الافتراضية: 123)"
+                    value={loginPassword}
+                    onChange={e => setLoginPassword(e.target.value)}
+                    className="p-3 bg-[#0A0B10] border border-white/10 focus:border-cyan-500 outline-none text-white rounded-lg text-sm text-left transition-all"
+                    dir="ltr"
+                  />
+                </div>
+
+                <button 
+                  type="submit"
+                  className="w-full mt-2 py-3 bg-cyan-500 hover:bg-cyan-600 text-slate-950 font-bold text-sm rounded-lg transition-all shadow-lg shadow-cyan-500/20"
+                >
+                  التحقق وتسجيل الدخول
+                </button>
+
+                <div className="text-center text-xs text-gray-400 mt-2">
+                  <span>ليس لديك حساب؟ </span>
+                  <button 
+                    type="button"
+                    onClick={() => {
+                      setIsRegisterMode(true);
+                      setLoginError('');
+                    }}
+                    className="text-cyan-400 hover:underline font-bold"
+                  >
+                    إنشاء حساب مستخدم جديد
+                  </button>
+                </div>
+
+                {/* الحسابات السريعة للتسهيل في المناقشة */}
+                <div className="mt-4 pt-4 border-t border-white/10">
+                  <span className="text-[10px] text-gray-500 font-bold block mb-2 text-right">حسابات سريعة لتسهيل تقديم المشروع للجنة المناقشة:</span>
+                  <div className="grid grid-cols-2 gap-2 text-[10px]">
+                    {usersList.slice(0, 4).map(u => (
+                      <button
+                        key={u.id}
+                        type="button"
+                        onClick={() => {
+                          setLoginUsername(u.username);
+                          setLoginPassword(u.password);
+                          setLoginError('');
+                        }}
+                        className="p-2 rounded bg-white/5 hover:bg-white/10 text-right border border-white/5 text-gray-300 transition-all flex flex-col gap-0.5 cursor-pointer"
+                      >
+                        <span className="font-bold truncate">{u.fullName}</span>
+                        <span className="text-gray-500 font-mono text-[9px] truncate">@{u.username} (كلمة المرور: {u.password})</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+              </form>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#0A0B10] text-gray-200 flex flex-col font-sans" dir="rtl">
@@ -461,6 +778,7 @@ export default function App() {
                   { id: 'alerts', name: 'التنبيهات والتحذيرات', icon: AlertTriangle },
                   { id: 'reports', name: 'التقارير والطباعة', icon: FileText },
                   { id: 'thesis', name: 'التوثيق الأكاديمي 🎓', icon: BookOpen },
+                  { id: 'users', name: 'المستخدمين والصلاحيات 🔐', icon: Users },
                   { id: 'settings', name: 'إعدادات المنصة', icon: Settings },
                 ].map(item => {
                   const Icon = item.icon;
@@ -519,12 +837,24 @@ export default function App() {
                 </div>
                 
                 <div className="flex items-center gap-6">
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-4">
                     <div className="text-left font-sans">
                       <div className="text-xs font-bold text-white text-left">{engineerName}</div>
-                      <div className="text-[10px] text-gray-500 text-left">{engineerRole}</div>
+                      <div className="text-[10px] text-gray-400 text-left">{engineerRole}</div>
                     </div>
-                    <div className="w-8 h-8 rounded bg-gradient-to-br from-cyan-500 to-blue-600"></div>
+                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center font-bold text-white shadow-lg shadow-cyan-500/10 border border-white/10">
+                      {engineerName ? engineerName.substring(0, 2) : 'مه'}
+                    </div>
+                    <button 
+                      onClick={() => {
+                        setIsLoggedIn(false);
+                      }}
+                      className="p-2 bg-rose-500/10 hover:bg-rose-500 text-rose-400 hover:text-white rounded-lg transition-all duration-200 flex items-center gap-1.5 text-xs font-bold border border-rose-500/20"
+                      title="تسجيل الخروج من المنصة"
+                    >
+                      <LogOut className="w-3.5 h-3.5" />
+                      <span className="hidden sm:inline">خروج</span>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -822,9 +1152,10 @@ export default function App() {
                         <div className="flex items-end">
                           <button 
                             type="submit"
-                            className="w-full py-3 bg-cyan-500 hover:bg-cyan-600 text-slate-950 font-bold text-sm rounded-lg transition-all shadow-lg shadow-cyan-500/20"
+                            disabled={currentUser.role !== 'Administrator' && currentUser.role !== 'Network Administrator'}
+                            className="w-full py-3 bg-cyan-500 hover:bg-cyan-600 disabled:bg-white/5 disabled:text-gray-500 text-slate-950 font-bold text-sm rounded-lg transition-all shadow-lg shadow-cyan-500/20 disabled:shadow-none"
                           >
-                            إضافة وتسجيل الجهاز
+                            {currentUser.role !== 'Administrator' && currentUser.role !== 'Network Administrator' ? 'عرض فقط (معطل)' : 'إضافة وتسجيل الجهاز'}
                           </button>
                         </div>
 
@@ -878,7 +1209,12 @@ export default function App() {
                                   <div className="flex items-center justify-center gap-2">
                                     <button 
                                       onClick={() => handleDeleteDevice(dev.id)}
-                                      className="p-1.5 bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white rounded-lg transition-all"
+                                      disabled={currentUser.role !== 'Administrator' && currentUser.role !== 'Network Administrator'}
+                                      className={`p-1.5 rounded-lg transition-all ${
+                                        (currentUser.role === 'Administrator' || currentUser.role === 'Network Administrator')
+                                        ? 'bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white cursor-pointer'
+                                        : 'bg-white/5 text-gray-600 cursor-not-allowed opacity-40'
+                                      }`}
                                       title="حذف الجهاز من المنصة"
                                     >
                                       <Trash2 className="w-4 h-4" />
@@ -1227,6 +1563,278 @@ export default function App() {
                       </div>
 
                     </div>
+                  </div>
+                )}
+
+                {/* =================================== */}
+                {/* 9. صفحة إدارة وصلاحيات المستخدمين (USERS) */}
+                {/* =================================== */}
+                {activePlatformPage === 'users' && (
+                  <div className="flex flex-col gap-6 animate-fade-in">
+                    
+                    {/* تحذير صلاحيات إن وجد */}
+                    {currentUser.role !== 'Administrator' && (
+                      <div className="p-4 rounded-xl border border-amber-500/20 bg-amber-500/5 text-amber-300 flex items-start gap-3">
+                        <Shield className="w-5 h-5 shrink-0 text-amber-500" />
+                        <div>
+                          <h4 className="font-bold text-sm">تنبيه الصلاحية الحالية ({engineerRole})</h4>
+                          <p className="text-xs text-gray-400 mt-1 leading-relaxed text-right">
+                            أنت تتصفح هذه الصفحة بصفتك {currentUser.fullName} ولديك صلاحية (<strong>{currentUser.role}</strong>). صلاحية التعديل، الحذف، وإضافة مستخدمين جدد تقتصر فقط على المسؤول العام (Administrator).
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                      
+                      {/* عمود 1 & 2: جدول قائمة مستخدمي قاعدة البيانات */}
+                      <div className="lg:col-span-2 p-6 rounded-xl border border-white/5 bg-[#111218] shadow-lg shadow-black/20 flex flex-col gap-4">
+                        <div className="flex items-center justify-between pb-4 border-b border-white/5">
+                          <div className="flex items-center gap-2">
+                            <Users className="w-5 h-5 text-cyan-400" />
+                            <h4 className="font-bold text-base text-white">قائمة مستخدمي المنصة الموثقين (سجلات جدول `users`)</h4>
+                          </div>
+                          <span className="text-xs text-gray-400">إجمالي الحسابات: {usersList.length}</span>
+                        </div>
+
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-right text-xs">
+                            <thead>
+                              <tr className="bg-[#0A0B10] text-gray-400 border-b border-white/5">
+                                <th className="p-3">الاسم الكامل</th>
+                                <th className="p-3">اسم المستخدم</th>
+                                <th className="p-3">البريد الإلكتروني</th>
+                                <th className="p-3">رتبة الصلاحيات (Role)</th>
+                                <th className="p-3">الحالة</th>
+                                <th className="p-3 text-center">العمليات</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {usersList.map(usr => (
+                                <tr key={usr.id} className="border-b border-white/5 hover:bg-white/5 transition-all">
+                                  <td className="p-3 font-semibold text-gray-200 flex items-center gap-2">
+                                    <span className="w-6 h-6 rounded bg-cyan-500/10 text-cyan-400 flex items-center justify-center font-bold text-[10px]">
+                                      {usr.fullName.substring(0, 2)}
+                                    </span>
+                                    <span>{usr.fullName}</span>
+                                    {currentUser.id === usr.id && (
+                                      <span className="px-1.5 py-0.5 bg-blue-500/20 text-blue-400 text-[9px] rounded font-bold">أنت</span>
+                                    )}
+                                  </td>
+                                  <td className="p-3 font-mono text-gray-300" dir="ltr">@{usr.username}</td>
+                                  <td className="p-3 text-gray-300">{usr.email}</td>
+                                  <td className="p-3">
+                                    <span className={`px-2.5 py-1 rounded text-[10px] font-bold flex items-center gap-1 w-fit ${
+                                      usr.role === 'Administrator' 
+                                      ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' 
+                                      : usr.role === 'Network Administrator' 
+                                        ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20'
+                                        : usr.role === 'Operator'
+                                          ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                                          : 'bg-slate-500/10 text-slate-400 border border-slate-500/20'
+                                    }`}>
+                                      <Shield className="w-3 h-3" />
+                                      <span>{usr.role === 'Administrator' ? 'مدير نظام' : usr.role === 'Network Administrator' ? 'مهندس شبكة' : usr.role === 'Operator' ? 'مشغل نظام' : 'مراقب عام'}</span>
+                                    </span>
+                                  </td>
+                                  <td className="p-3">
+                                    <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 rounded-full text-[10px] font-bold">
+                                      {usr.status === 'Active' ? 'نشط' : 'غير نشط'}
+                                    </span>
+                                  </td>
+                                  <td className="p-3 text-center">
+                                    <button 
+                                      onClick={() => {
+                                        if (currentUser.role !== 'Administrator') {
+                                          alert('عذراً، لا تمتلك الصلاحيات الكافية لحذف مستخدمين. يجب تسجيل الدخول بصلاحية Administrator.');
+                                          return;
+                                        }
+                                        if (usr.id === currentUser.id) {
+                                          alert('لا يمكنك حذف حسابك الحالي الذي قمت بتسجيل الدخول منه!');
+                                          return;
+                                        }
+                                        if (confirm(`هل أنت متأكد من حذف الحساب: ${usr.fullName}؟`)) {
+                                          setUsersList(usersList.filter(u => u.id !== usr.id));
+                                        }
+                                      }}
+                                      disabled={currentUser.role !== 'Administrator'}
+                                      className={`p-1.5 rounded-lg transition-all ${
+                                        currentUser.role === 'Administrator'
+                                        ? 'bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white cursor-pointer'
+                                        : 'bg-white/5 text-gray-600 cursor-not-allowed opacity-40'
+                                      }`}
+                                      title="حذف المستخدم نهائياً"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </button>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+
+                      {/* عمود 3: نموذج إنشاء مستخدم جديد + محاكاة سريعة لتسجيل الدخول */}
+                      <div className="flex flex-col gap-6">
+                        
+                        {/* كارد إضافة مستخدم جديد */}
+                        <div className="p-6 rounded-xl border border-white/5 bg-[#111218] shadow-lg shadow-black/20">
+                          <h4 className="font-bold text-sm mb-4 flex items-center gap-2 text-cyan-400">
+                            <UserPlus className="w-4 h-4" />
+                            <span>إنشاء مستخدم جديد (قاعدة البيانات)</span>
+                          </h4>
+
+                          <form onSubmit={(e) => {
+                            e.preventDefault();
+                            if (currentUser.role !== 'Administrator') {
+                              alert('عذراً، يجب أن تكون Administrator لإنشاء مستخدمين جدد.');
+                              return;
+                            }
+                            if (!newUserFullName || !newUserUsername || !newUserEmail || !newUserPassword) {
+                              alert('الرجاء تعبئة جميع الحقول المطلوبة لقالب التسجيل!');
+                              return;
+                            }
+                            // التحقق من تكرار اسم المستخدم
+                            if (usersList.some(u => u.username.toLowerCase() === newUserUsername.toLowerCase())) {
+                              alert('اسم المستخدم هذا مسجل مسبقاً في النظام!');
+                              return;
+                            }
+
+                            const newUser = {
+                              id: usersList.length + 1,
+                              fullName: newUserFullName,
+                              username: newUserUsername,
+                              email: newUserEmail,
+                              password: newUserPassword,
+                              role: newUserRole,
+                              status: 'Active',
+                              createdAt: new Date().toISOString().slice(0, 16).replace('T', ' ')
+                            };
+
+                            setUsersList([...usersList, newUser]);
+                            setNewUserFullName('');
+                            setNewUserUsername('');
+                            setNewUserEmail('');
+                            setNewUserPassword('');
+                            alert(`تم تسجيل وإنشاء حساب المستخدم (${newUserFullName}) بنجاح كحساب نشط في قاعدة البيانات!`);
+                          }} className="flex flex-col gap-4">
+                            
+                            <div className="flex flex-col gap-1.5">
+                              <label className="text-[11px] font-bold text-gray-400">الاسم الكامل للموظف</label>
+                              <input 
+                                type="text"
+                                placeholder="مثال: خالد اليماني"
+                                value={newUserFullName}
+                                onChange={e => setNewUserFullName(e.target.value)}
+                                disabled={currentUser.role !== 'Administrator'}
+                                className="p-2.5 rounded bg-[#0A0B10] border border-white/10 text-xs text-gray-200 outline-none focus:border-cyan-500/50 disabled:opacity-50 text-right"
+                              />
+                            </div>
+
+                            <div className="flex flex-col gap-1.5">
+                              <label className="text-[11px] font-bold text-gray-400">اسم المستخدم (المعرف الفريد)</label>
+                              <input 
+                                type="text"
+                                placeholder="مثال: khaled_net"
+                                value={newUserUsername}
+                                onChange={e => setNewUserUsername(e.target.value)}
+                                disabled={currentUser.role !== 'Administrator'}
+                                className="p-2.5 rounded bg-[#0A0B10] border border-white/10 text-xs text-gray-200 outline-none focus:border-cyan-500/50 disabled:opacity-50 text-left"
+                                dir="ltr"
+                              />
+                            </div>
+
+                            <div className="flex flex-col gap-1.5">
+                              <label className="text-[11px] font-bold text-gray-400">البريد الإلكتروني المهني</label>
+                              <input 
+                                type="email"
+                                placeholder="example@uniyemen.edu.ye"
+                                value={newUserEmail}
+                                onChange={e => setNewUserEmail(e.target.value)}
+                                disabled={currentUser.role !== 'Administrator'}
+                                className="p-2.5 rounded bg-[#0A0B10] border border-white/10 text-xs text-gray-200 outline-none focus:border-cyan-500/50 disabled:opacity-50 text-left"
+                                dir="ltr"
+                              />
+                            </div>
+
+                            <div className="flex flex-col gap-1.5">
+                              <label className="text-[11px] font-bold text-gray-400">كلمة المرور الخاصة به</label>
+                              <input 
+                                type="password"
+                                placeholder="كلمة المرور الأمنية"
+                                value={newUserPassword}
+                                onChange={e => setNewUserPassword(e.target.value)}
+                                disabled={currentUser.role !== 'Administrator'}
+                                className="p-2.5 rounded bg-[#0A0B10] border border-white/10 text-xs text-gray-200 outline-none focus:border-cyan-500/50 disabled:opacity-50 text-left"
+                                dir="ltr"
+                              />
+                            </div>
+
+                            <div className="flex flex-col gap-1.5">
+                              <label className="text-[11px] font-bold text-gray-400">رتبة الصلاحية الممنوحة له</label>
+                              <select 
+                                value={newUserRole}
+                                onChange={e => setNewUserRole(e.target.value)}
+                                disabled={currentUser.role !== 'Administrator'}
+                                className="p-2.5 rounded bg-[#0A0B10] border border-white/10 text-xs text-gray-200 outline-none focus:border-cyan-500/50 disabled:opacity-50 text-right"
+                              >
+                                <option value="Administrator">Administrator (مدير كامل الصلاحيات)</option>
+                                <option value="Network Administrator">Network Administrator (مهندس ومحلل شبكة)</option>
+                                <option value="Operator">Operator (مشغل نظام ومعالجة تنبيهات)</option>
+                                <option value="Viewer">Viewer (مراقب عام للقراءات فقط)</option>
+                              </select>
+                            </div>
+
+                            <button 
+                              type="submit"
+                              disabled={currentUser.role !== 'Administrator'}
+                              className="w-full mt-2 py-2.5 bg-cyan-500 hover:bg-cyan-600 disabled:bg-white/5 disabled:text-gray-500 text-slate-950 font-bold text-xs rounded transition-all shadow-lg shadow-cyan-500/10"
+                            >
+                              حفظ وإنشاء الحساب في النظام
+                            </button>
+
+                          </form>
+                        </div>
+
+                        {/* كارد تبديل الحساب السريع للمناقشة */}
+                        <div className="p-6 rounded-xl border border-cyan-500/10 bg-[#111218] shadow-lg shadow-black/20">
+                          <h4 className="font-bold text-sm mb-2 flex items-center gap-2 text-cyan-400">
+                            <Lock className="w-4 h-4" />
+                            <span>ميزة التبديل السريع للمناقشة الأكاديمية</span>
+                          </h4>
+                          <p className="text-[11px] text-gray-400 leading-relaxed mb-4 text-right">
+                            اختر أي مستخدم من الحسابات المسجلة حالياً للانتقال الفوري إليه ومحاكاة تغير الصلاحيات وعرض التقارير وفق صلاحية المستخدم المختار:
+                          </p>
+
+                          <div className="flex flex-col gap-2">
+                            {usersList.map(u => (
+                              <button
+                                key={u.id}
+                                onClick={() => {
+                                  setCurrentUser(u);
+                                  alert(`تم التحويل والتبديل بنجاح! أنت الآن تتصفح النظام بصلاحية مهندس: ${u.fullName} (${u.role})`);
+                                }}
+                                className={`w-full p-2.5 rounded-lg border text-right text-xs flex items-center justify-between transition-all cursor-pointer ${
+                                  currentUser.id === u.id
+                                  ? 'bg-cyan-500/10 border-cyan-500/40 text-cyan-400 font-bold'
+                                  : 'bg-white/5 border-transparent text-gray-300 hover:bg-white/10'
+                                }`}
+                              >
+                                <div className="flex flex-col gap-0.5 text-right">
+                                  <span className="font-bold">{u.fullName}</span>
+                                  <span className="text-[10px] text-gray-500">@{u.username}</span>
+                                </div>
+                                <span className="text-[10px] bg-white/5 px-2 py-0.5 rounded text-gray-400 font-mono">{u.role}</span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                      </div>
+
+                    </div>
+
                   </div>
                 )}
 
